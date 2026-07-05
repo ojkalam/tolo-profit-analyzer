@@ -27,6 +27,7 @@ export default function App() {
         <a href="/app/costs/shipping">Shipping</a>
         <a href="/app/adspend">Ad spend</a>
         <a href="/app/impact">Impact</a>
+        <a href="/app/roas">ROAS</a>
         <a href="/app/alerts">Alerts</a>
         <a href="/app/onboarding">Setup</a>
         <a href="/app/settings">Settings</a>

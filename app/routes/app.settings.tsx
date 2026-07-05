@@ -222,6 +222,7 @@ export default function ToloSettingsPage() {
             >
               <s-option value="orders">Orders</s-option>
               <s-option value="products">Products</s-option>
+              <s-option value="monthly">Monthly (accountant pack)</s-option>
             </s-select>
             <s-select
               label="Range"

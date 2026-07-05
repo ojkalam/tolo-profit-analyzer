@@ -110,6 +110,15 @@ describe("toloResolveShippingCost (ToloShippingCostResolver)", () => {
     ).toBe(1500);
   });
 
+  it("treats a band with zero/absent amount as 0 cents", () => {
+    const result = toloResolveShippingCost(
+      [rule("weight_band", { bands: [{ maxGrams: null, amountCents: 0 }] })],
+      ctx,
+    );
+    expect(result.costCents).toBe(0);
+    expect(result.ruleId).not.toBeNull();
+  });
+
   it("weight_band with no matching band falls through to next rule", () => {
     const rules = [
       rule("weight_band", { bands: [{ maxGrams: 500, amountCents: 500 }] }, 0),
@@ -159,6 +168,15 @@ describe("toloResolveShippingCost (ToloShippingCostResolver)", () => {
       { ...rule("flat_order", { amountCents: 50 }, 0), active: false },
     ];
     expect(toloResolveShippingCost(rules, ctx).costCents).toBe(200);
+  });
+
+  it("treats a zero/absent zone amount as 0 cents", () => {
+    const result = toloResolveShippingCost(
+      [rule("zone", { zones: [{ countries: ["US"], amountCents: 0 }] })],
+      ctx,
+    );
+    expect(result.costCents).toBe(0);
+    expect(result.ruleId).not.toBeNull();
   });
 
   it("skips malformed configs and returns 0 when nothing matches", () => {
@@ -329,6 +347,14 @@ describe("toloRollupDay", () => {
     o.lines[1] = { ...o.lines[1], productId: null };
     const { products } = toloRollupDay([o], 0);
     expect(products.some((p) => p.productId === TOLO_UNATTRIBUTED)).toBe(true);
+  });
+
+  it("accumulates a product appearing across two orders in a day", () => {
+    const { products } = toloRollupDay([order(), order()], 0);
+    const p1 = products.find((p) => p.productId === "prod-1")!;
+    // Same two orders → doubled units for prod-1.
+    expect(p1.unitsSold).toBe(4);
+    expect(p1.grossCents).toBe(13_400);
   });
 
   it("handles an empty day with ad spend", () => {

@@ -3,7 +3,7 @@
 <html lang="en">
 
 <head>
-    <title>Code coverage report for services/tolo-sentry.server.ts</title>
+    <title>Code coverage report for services/tolo-app-context.server.ts</title>
     <meta charset="utf-8" />
     <link rel="stylesheet" href="../prettify.css" />
     <link rel="stylesheet" href="../base.css" />
@@ -19,20 +19,20 @@
 <body>
 <div class='wrapper'>
     <div class='pad1'>
-        <h1><a href="../index.html">All files</a> / <a href="index.html">services</a> tolo-sentry.server.ts</h1>
+        <h1><a href="../index.html">All files</a> / <a href="index.html">services</a> tolo-app-context.server.ts</h1>
         <div class='clearfix'>
             
             <div class='fl pad1y space-right2'>
-                <span class="strong">33.33% </span>
+                <span class="strong">0% </span>
                 <span class="quiet">Statements</span>
-                <span class='fraction'>2/6</span>
+                <span class='fraction'>0/3</span>
             </div>
         
             
             <div class='fl pad1y space-right2'>
-                <span class="strong">12.5% </span>
+                <span class="strong">100% </span>
                 <span class="quiet">Branches</span>
-                <span class='fraction'>1/8</span>
+                <span class='fraction'>0/0</span>
             </div>
         
             
@@ -44,9 +44,9 @@
         
             
             <div class='fl pad1y space-right2'>
-                <span class="strong">33.33% </span>
+                <span class="strong">0% </span>
                 <span class="quiet">Lines</span>
-                <span class='fraction'>2/6</span>
+                <span class='fraction'>0/3</span>
             </div>
         
             
@@ -82,20 +82,7 @@
 <a name='L17'></a><a href='#L17'>17</a>
 <a name='L18'></a><a href='#L18'>18</a>
 <a name='L19'></a><a href='#L19'>19</a>
-<a name='L20'></a><a href='#L20'>20</a>
-<a name='L21'></a><a href='#L21'>21</a>
-<a name='L22'></a><a href='#L22'>22</a>
-<a name='L23'></a><a href='#L23'>23</a>
-<a name='L24'></a><a href='#L24'>24</a>
-<a name='L25'></a><a href='#L25'>25</a>
-<a name='L26'></a><a href='#L26'>26</a>
-<a name='L27'></a><a href='#L27'>27</a></td><td class="line-coverage quiet"><span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-yes">1x</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-yes">1x</span>
-<span class="cline-any cline-no">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
+<a name='L20'></a><a href='#L20'>20</a></td><td class="line-coverage quiet"><span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
@@ -114,32 +101,24 @@
 <span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span></td><td class="text"><pre class="prettyprint lang-js">import * as Sentry from "@sentry/node";
+<span class="cline-any cline-neutral">&nbsp;</span></td><td class="text"><pre class="prettyprint lang-js">import type { ToloShop } from "@prisma/client";
+import { authenticate } from "../shopify.server";
+import { toloEnsureShop } from "./tolo-shops.server";
 &nbsp;
-const dsn = process.env.SENTRY_DSN;
-&nbsp;
-<span class="missing-if-branch" title="if path not taken" >I</span>if (dsn) {
-<span class="cstat-no" title="statement not covered" >  Sentry.init({</span>
-    dsn,
-    tracesSampleRate: 0.1,
-    environment: process.env.NODE_ENV ?? "development",
-  });
+export interface ToloAppContext {
+  shop: ToloShop;
+  admin: Awaited&lt;ReturnType&lt;typeof authenticate.admin&gt;&gt;["admin"];
+  session: Awaited&lt;ReturnType&lt;typeof authenticate.admin&gt;&gt;["session"];
 }
 &nbsp;
 /**
- * Central error reporter. Always logs; forwards to Sentry when SENTRY_DSN is
- * configured. Use this in job handlers and catch blocks instead of bare
- * console.error so production errors are never silent.
+ * Standard admin-route entry: authenticate the embedded session and load the
+ * provisioned ToloShop row. Use in every loader/action under app/routes/app.*.
  */
-export function <span class="fstat-no" title="function not covered" >toloCaptureException(</span>
-  error: unknown,
-  context?: Record&lt;string, unknown&gt;,
-): void {
-<span class="cstat-no" title="statement not covered" >  console.error("[tolo]", error, context ?? "");</span>
-<span class="cstat-no" title="statement not covered" >  if (dsn) {</span>
-<span class="cstat-no" title="statement not covered" >    Sentry.captureException(error, { extra: context });</span>
-  }
+export async function <span class="fstat-no" title="function not covered" >toloAppContext(r</span>equest: Request): Promise&lt;ToloAppContext&gt; {
+  const { admin, session } = <span class="cstat-no" title="statement not covered" >await authenticate.admin(request);</span>
+  const shop = <span class="cstat-no" title="statement not covered" >await toloEnsureShop(session.shop);</span>
+<span class="cstat-no" title="statement not covered" >  return { shop, admin, session };</span>
 }
 &nbsp;</pre></td></tr></table></pre>
 

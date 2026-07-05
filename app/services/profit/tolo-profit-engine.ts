@@ -477,4 +477,63 @@ export function toloRollupDay(
   };
 }
 
+// ---------------------------------------------------------------------------
+// Anomaly detection — sudden margin shifts without a configured rule
+// ---------------------------------------------------------------------------
+
+export interface ToloAnomalyResult {
+  isAnomaly: boolean;
+  latestBps: number;
+  meanBps: number;
+  stdDevBps: number;
+  /** Signed z-score of the latest point against the baseline window. */
+  zScore: number;
+}
+
+/**
+ * Flag the latest day's margin as anomalous when it deviates from the baseline
+ * (earlier days) by more than `zThreshold` standard deviations AND the absolute
+ * gap clears `minGapBps` (so tiny, noisy swings don't fire). Needs at least 4
+ * baseline points to have a meaningful distribution.
+ */
+export function toloDetectMarginAnomaly(
+  marginSeriesBps: number[],
+  zThreshold = 2,
+  minGapBps = 500,
+): ToloAnomalyResult {
+  const none: ToloAnomalyResult = {
+    isAnomaly: false,
+    latestBps: 0,
+    meanBps: 0,
+    stdDevBps: 0,
+    zScore: 0,
+  };
+  if (marginSeriesBps.length < 5) return none;
+
+  const latestBps = marginSeriesBps[marginSeriesBps.length - 1];
+  const baseline = marginSeriesBps.slice(0, -1);
+  const meanBps = baseline.reduce((a, b) => a + b, 0) / baseline.length;
+  const variance =
+    baseline.reduce((sum, v) => sum + (v - meanBps) ** 2, 0) / baseline.length;
+  const stdDevBps = Math.sqrt(variance);
+
+  if (stdDevBps === 0) {
+    // Flat baseline: any gap beyond minGapBps is an anomaly.
+    const gap = Math.abs(latestBps - meanBps);
+    return {
+      isAnomaly: gap >= minGapBps,
+      latestBps,
+      meanBps,
+      stdDevBps,
+      zScore: gap >= minGapBps ? (latestBps < meanBps ? -Infinity : Infinity) : 0,
+    };
+  }
+
+  const zScore = (latestBps - meanBps) / stdDevBps;
+  const isAnomaly =
+    Math.abs(zScore) >= zThreshold &&
+    Math.abs(latestBps - meanBps) >= minGapBps;
+  return { isAnomaly, latestBps, meanBps, stdDevBps, zScore };
+}
+
 export { TOLO_UNATTRIBUTED };

@@ -66,6 +66,11 @@ export function toloCanExportCsv(plan: string): boolean {
   return plan === "trial" || plan === "pro";
 }
 
+/** True ROAS + accountant export pack are Pro (trial previews them). */
+export function toloCanUseRoas(plan: string): boolean {
+  return plan === "trial" || plan === "pro";
+}
+
 export interface ToloOrderUsage {
   used: number;
   limit: number | null;

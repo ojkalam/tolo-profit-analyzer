@@ -4,6 +4,7 @@ import prisma from "../../db.server";
 import { toloAddDays, toloDayKey, toloWeekKey } from "../tolo-dates";
 import { toloGetShop } from "../tolo-shops.server";
 import { toloFormatBps, toloFormatCents } from "../profit/tolo-money";
+import { toloDetectMarginAnomaly } from "../profit/tolo-profit-engine";
 import { toloSendEmail } from "../reports/tolo-email.server";
 import { toloCaptureException } from "../tolo-sentry.server";
 
@@ -237,6 +238,53 @@ export async function toloScanAlerts(shopDomain: string): Promise<void> {
           detail: `${Math.round(refundRate * 100)}% of revenue refunded (was ${Math.round(priorRate * 100)}%)`,
         });
       }
+    }
+  }
+
+  // Store-wide margin anomaly (CLAUDE.md 6.4) — fires without a configured
+  // threshold when the latest day's margin diverges sharply from its baseline.
+  const dailyRows = await prisma.toloDailyProfit.findMany({
+    where: { shopId: shop.id, date: { gte: toloAddDays(today, -14), lt: today } },
+    orderBy: { date: "asc" },
+    select: { date: true, marginBps: true, netRevenueCents: true },
+  });
+  const series = dailyRows
+    .filter((r) => r.netRevenueCents > 0)
+    .map((r) => r.marginBps);
+  const anomaly = toloDetectMarginAnomaly(series);
+  if (anomaly.isAnomaly && anomaly.latestBps < anomaly.meanBps) {
+    // Store-wide alerts carry a null productId, which the unique index can't
+    // dedupe (SQL treats nulls as distinct), so check the week manually.
+    const already = await prisma.toloAlert.findFirst({
+      where: {
+        shopId: shop.id,
+        productId: null,
+        kind: "anomaly",
+        weekKey: toloWeekKey(yesterday),
+      },
+    });
+    if (!already) {
+      await prisma.toloAlert.create({
+        data: {
+          shopId: shop.id,
+          productId: null,
+          date: yesterday,
+          weekKey: toloWeekKey(yesterday),
+          kind: "anomaly",
+          detail: {
+            latestBps: anomaly.latestBps,
+            meanBps: Math.round(anomaly.meanBps),
+            zScore: Number.isFinite(anomaly.zScore)
+              ? Math.round(anomaly.zScore * 10) / 10
+              : null,
+          } as Prisma.InputJsonValue,
+        },
+      });
+      created.push({
+        kind: "anomaly",
+        productId: "",
+        detail: `store margin dropped to ${toloFormatBps(anomaly.latestBps)} (usually ${toloFormatBps(Math.round(anomaly.meanBps))})`,
+      });
     }
   }
 

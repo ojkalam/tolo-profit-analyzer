@@ -5,13 +5,14 @@ import {
   type ToloRangeKey,
 } from "../services/profit/tolo-profit-queries.server";
 import {
+  toloMonthlyCsv,
   toloOrderCsv,
   toloProductCsv,
 } from "../services/reports/tolo-csv.server";
 import { toloCanExportCsv } from "../services/billing/tolo-billing.server";
 
 // Resource route (no default export): returns a CSV file download. Pro-gated.
-// /app/export.csv?level=orders|products&range=30d
+// /app/export.csv?level=orders|products|monthly&range=30d
 export const loader = async ({ request }: LoaderFunctionArgs) => {
   const { shop } = await toloAppContext(request);
   if (!toloCanExportCsv(shop.plan)) {
@@ -19,7 +20,11 @@ export const loader = async ({ request }: LoaderFunctionArgs) => {
   }
 
   const url = new URL(request.url);
-  const level = url.searchParams.get("level") === "products" ? "products" : "orders";
+  const levelParam = url.searchParams.get("level");
+  const level =
+    levelParam === "products" || levelParam === "monthly"
+      ? levelParam
+      : "orders";
   const rangeKey = (url.searchParams.get("range") as ToloRangeKey) ?? "30d";
   const validKey: ToloRangeKey = ["today", "7d", "30d"].includes(rangeKey)
     ? rangeKey
@@ -29,7 +34,9 @@ export const loader = async ({ request }: LoaderFunctionArgs) => {
   const csv =
     level === "products"
       ? await toloProductCsv(shop.id, range, shop.currency)
-      : await toloOrderCsv(shop.id, range, shop.currency);
+      : level === "monthly"
+        ? await toloMonthlyCsv(shop.id, range, shop.currency)
+        : await toloOrderCsv(shop.id, range, shop.currency);
 
   return new Response(csv, {
     status: 200,

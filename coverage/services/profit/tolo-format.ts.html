@@ -3,15 +3,15 @@
 <html lang="en">
 
 <head>
-    <title>Code coverage report for services/tolo-sentry.server.ts</title>
+    <title>Code coverage report for services/profit/tolo-format.ts</title>
     <meta charset="utf-8" />
-    <link rel="stylesheet" href="../prettify.css" />
-    <link rel="stylesheet" href="../base.css" />
-    <link rel="shortcut icon" type="image/x-icon" href="../favicon.png" />
+    <link rel="stylesheet" href="../../prettify.css" />
+    <link rel="stylesheet" href="../../base.css" />
+    <link rel="shortcut icon" type="image/x-icon" href="../../favicon.png" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <style type='text/css'>
         .coverage-summary .sorter {
-            background-image: url(../sort-arrow-sprite.png);
+            background-image: url(../../sort-arrow-sprite.png);
         }
     </style>
 </head>
@@ -19,34 +19,34 @@
 <body>
 <div class='wrapper'>
     <div class='pad1'>
-        <h1><a href="../index.html">All files</a> / <a href="index.html">services</a> tolo-sentry.server.ts</h1>
+        <h1><a href="../../index.html">All files</a> / <a href="index.html">services/profit</a> tolo-format.ts</h1>
         <div class='clearfix'>
             
             <div class='fl pad1y space-right2'>
-                <span class="strong">33.33% </span>
+                <span class="strong">0% </span>
                 <span class="quiet">Statements</span>
-                <span class='fraction'>2/6</span>
+                <span class='fraction'>0/12</span>
             </div>
         
             
             <div class='fl pad1y space-right2'>
-                <span class="strong">12.5% </span>
+                <span class="strong">0% </span>
                 <span class="quiet">Branches</span>
-                <span class='fraction'>1/8</span>
+                <span class='fraction'>0/14</span>
             </div>
         
             
             <div class='fl pad1y space-right2'>
                 <span class="strong">0% </span>
                 <span class="quiet">Functions</span>
-                <span class='fraction'>0/1</span>
+                <span class='fraction'>0/2</span>
             </div>
         
             
             <div class='fl pad1y space-right2'>
-                <span class="strong">33.33% </span>
+                <span class="strong">0% </span>
                 <span class="quiet">Lines</span>
-                <span class='fraction'>2/6</span>
+                <span class='fraction'>0/9</span>
             </div>
         
             
@@ -89,16 +89,8 @@
 <a name='L24'></a><a href='#L24'>24</a>
 <a name='L25'></a><a href='#L25'>25</a>
 <a name='L26'></a><a href='#L26'>26</a>
-<a name='L27'></a><a href='#L27'>27</a></td><td class="line-coverage quiet"><span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-yes">1x</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-yes">1x</span>
-<span class="cline-any cline-no">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
+<a name='L27'></a><a href='#L27'>27</a>
+<a name='L28'></a><a href='#L28'>28</a></td><td class="line-coverage quiet"><span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
@@ -115,31 +107,42 @@
 <span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span></td><td class="text"><pre class="prettyprint lang-js">import * as Sentry from "@sentry/node";
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span></td><td class="text"><pre class="prettyprint lang-js">// Client-safe re-exports of the pure money formatters, so UI components never
+// reach into a *.server module (which would pull server code into the bundle).
+export {
+  toloFormatBps,
+  toloFormatCents,
+  toloDecimalToCents,
+} from "./tolo-money";
 &nbsp;
-const dsn = process.env.SENTRY_DSN;
-&nbsp;
-<span class="missing-if-branch" title="if path not taken" >I</span>if (dsn) {
-<span class="cstat-no" title="statement not covered" >  Sentry.init({</span>
-    dsn,
-    tracesSampleRate: 0.1,
-    environment: process.env.NODE_ENV ?? "development",
-  });
+/** Signed profit tone for badges/text: positive = success, negative = critical. */
+export function <span class="fstat-no" title="function not covered" >toloProfitTone(</span>
+  cents: number,
+): "success" | "critical" | "neutral" {
+<span class="cstat-no" title="statement not covered" >  if (cents &gt; 0) <span class="cstat-no" title="statement not covered" >return "success";</span></span>
+<span class="cstat-no" title="statement not covered" >  if (cents &lt; 0) <span class="cstat-no" title="statement not covered" >return "critical";</span></span>
+<span class="cstat-no" title="statement not covered" >  return "neutral";</span>
 }
 &nbsp;
-/**
- * Central error reporter. Always logs; forwards to Sentry when SENTRY_DSN is
- * configured. Use this in job handlers and catch blocks instead of bare
- * console.error so production errors are never silent.
- */
-export function <span class="fstat-no" title="function not covered" >toloCaptureException(</span>
-  error: unknown,
-  context?: Record&lt;string, unknown&gt;,
-): void {
-<span class="cstat-no" title="statement not covered" >  console.error("[tolo]", error, context ?? "");</span>
-<span class="cstat-no" title="statement not covered" >  if (dsn) {</span>
-<span class="cstat-no" title="statement not covered" >    Sentry.captureException(error, { extra: context });</span>
+/** Compare two totals and return a percent-change label vs previous. */
+export function <span class="fstat-no" title="function not covered" >toloDeltaLabel(c</span>urrent: number, previous: number): string {
+<span class="cstat-no" title="statement not covered" >  if (previous === 0) {</span>
+<span class="cstat-no" title="statement not covered" >    if (current === 0) <span class="cstat-no" title="statement not covered" >return "—";</span></span>
+<span class="cstat-no" title="statement not covered" >    return current &gt; 0 ? "▲ new" : "▼ new";</span>
   }
+  const pct = <span class="cstat-no" title="statement not covered" >Math.round(((current - previous) / Math.abs(previous)) * 100);</span>
+  const arrow = <span class="cstat-no" title="statement not covered" >pct &gt; 0 ? "▲" : pct &lt; 0 ? "▼" : "—";</span>
+<span class="cstat-no" title="statement not covered" >  return `${arrow} ${Math.abs(pct)}% vs prev`;</span>
 }
 &nbsp;</pre></td></tr></table></pre>
 
@@ -150,14 +153,14 @@ export function <span class="fstat-no" title="function not covered" >toloCapture
                 <a href="https://istanbul.js.org/" target="_blank" rel="noopener noreferrer">istanbul</a>
                 at 2026-07-05T12:41:13.760Z
             </div>
-        <script src="../prettify.js"></script>
+        <script src="../../prettify.js"></script>
         <script>
             window.onload = function () {
                 prettyPrint();
             };
         </script>
-        <script src="../sorter.js"></script>
-        <script src="../block-navigation.js"></script>
+        <script src="../../sorter.js"></script>
+        <script src="../../block-navigation.js"></script>
     </body>
 </html>
     

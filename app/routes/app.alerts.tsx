@@ -63,6 +63,7 @@ const KIND_TONE: Record<string, "critical" | "warning" | "info"> = {
   negative: "critical",
   margin_drop: "warning",
   returns_spike: "warning",
+  anomaly: "warning",
 };
 
 export default function ToloAlertsPage() {

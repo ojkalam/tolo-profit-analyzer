@@ -66,6 +66,101 @@ export async function toloOrderCsv(
   );
 }
 
+/**
+ * Accountant pack (CLAUDE.md 6.5): one summarized row per calendar month over
+ * the range — the P&L-style bundle to hand an accountant.
+ */
+export async function toloMonthlyCsv(
+  shopId: string,
+  range: ToloDateRange,
+  currency: string,
+): Promise<string> {
+  const days = await prisma.toloDailyProfit.findMany({
+    where: { shopId, date: { gte: range.from, lte: range.to } },
+    orderBy: { date: "asc" },
+  });
+  const byMonth = new Map<
+    string,
+    {
+      gross: number;
+      discount: number;
+      refund: number;
+      cogs: number;
+      shipping: number;
+      fee: number;
+      ad: number;
+      netRevenue: number;
+      netProfit: number;
+      orders: number;
+    }
+  >();
+  for (const d of days) {
+    const month = d.date.slice(0, 7);
+    const m = byMonth.get(month) ?? {
+      gross: 0,
+      discount: 0,
+      refund: 0,
+      cogs: 0,
+      shipping: 0,
+      fee: 0,
+      ad: 0,
+      netRevenue: 0,
+      netProfit: 0,
+      orders: 0,
+    };
+    m.gross += d.grossCents;
+    m.discount += d.discountCents;
+    m.refund += d.refundCents;
+    m.cogs += d.cogsCents;
+    m.shipping += d.shippingCostCents;
+    m.fee += d.feeCents;
+    m.ad += d.adSpendCents;
+    m.netRevenue += d.netRevenueCents;
+    m.netProfit += d.netProfitCents;
+    m.orders += d.ordersCount;
+    byMonth.set(month, m);
+  }
+  const rows = [...byMonth.entries()]
+    .sort((a, b) => a[0].localeCompare(b[0]))
+    .map(([month, m]) => {
+      const marginPct =
+        m.netRevenue > 0 ? ((m.netProfit / m.netRevenue) * 100).toFixed(1) : "0";
+      return [
+        month,
+        currency,
+        m.orders,
+        centsToStr(m.gross),
+        centsToStr(m.discount),
+        centsToStr(m.refund),
+        centsToStr(m.cogs),
+        centsToStr(m.shipping),
+        centsToStr(m.fee),
+        centsToStr(m.ad),
+        centsToStr(m.netRevenue),
+        centsToStr(m.netProfit),
+        marginPct,
+      ];
+    });
+  return toCsv(
+    [
+      "month",
+      "currency",
+      "orders",
+      "gross",
+      "discounts",
+      "refunds",
+      "cogs",
+      "shipping_cost",
+      "fees",
+      "ad_spend",
+      "net_revenue",
+      "net_profit",
+      "margin_pct",
+    ],
+    rows,
+  );
+}
+
 /** Product-level daily profit export (includes allocated ad spend). */
 export async function toloProductCsv(
   shopId: string,

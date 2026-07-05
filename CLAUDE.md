@@ -302,11 +302,11 @@ ToloAlert            (id, shopId, productId, date, kind[margin_drop|negative|
 - [ ] **5.4 Beta** — 15–25 merchants; instrument: cost-completeness at day 3, dashboard WAU, alert open rate, trial→paid
 
 ### Phase 6 — Post-Launch Growth (Weeks 13+)
-- [ ] **6.1 Ad platform integrations** — Meta + Google OAuth, auto-pull daily spend (replaces manual entry; keep manual as fallback)
-- [ ] **6.2 True ROAS view** — profit-based ROAS + per-product break-even ROAS
-- [ ] **6.3 24-month history** (Pro) + year-over-year comparisons
-- [ ] **6.4 Anomaly detection** — sudden margin shifts flagged without a configured rule
-- [ ] **6.5 Accountant export pack** — monthly summarized CSV bundle
+- [ ] **6.1 Ad platform integrations** — Meta + Google OAuth, auto-pull daily spend (replaces manual entry; keep manual as fallback) _(designed + documented in docs/ad-platform-integrations.md; live OAuth pending Meta/Google credentials — manual entry is the fallback)_
+- [x] **6.2 True ROAS view** — profit-based ROAS + per-product break-even ROAS
+- [x] **6.3 24-month history** (Pro) + year-over-year comparisons
+- [x] **6.4 Anomaly detection** — sudden margin shifts flagged without a configured rule
+- [x] **6.5 Accountant export pack** — monthly summarized CSV bundle
 
 ---
 
