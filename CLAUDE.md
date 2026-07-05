@@ -259,22 +259,22 @@ ToloAlert            (id, shopId, productId, date, kind[margin_drop|negative|
   - [x] Editable history table; daily totals feed allocation
 
 ### Phase 3 — Profit Engine & Dashboard (Weeks 6–8)
-- [ ] **3.1 ToloProfitEngine (pure, table-test-driven)**
-  - [ ] Per-line COGS resolution from cost history (order-time effective cost); `cogsMissing` flagging
-  - [ ] Order-level: net revenue, shipping cost, fees; day-level ad-spend allocation by revenue share
-  - [ ] 100% branch coverage; golden-file tests against seeded dev-store fixtures
-- [ ] **3.2 Rollups**
-  - [ ] Nightly `ToloDailyProfit` + `ToloProductDailyProfit` rollup job (idempotent, recompute-on-demand when costs backdated)
-  - [ ] Recompute queue with per-shop debounce (cost edit → recompute affected range only)
-- [ ] **3.3 Dashboard** (`app._index`)
-  - [ ] KPI header: net profit, margin %, vs previous period (range picker: today/7d/30d/custom)
-  - [ ] Profit waterfall (Polaris Viz): revenue → discounts → refunds → COGS → shipping → fees → ads → profit
-  - [ ] Daily profit + margin trend chart
-  - [ ] Missing-cost banner linking to COGS editor when completeness < 90% of revenue
-- [ ] **3.4 Best / Worst products** (`app.products`)
-  - [ ] Sortable table: profit contribution, margin %, units, revenue, returns %
-  - [ ] "Losing money" filter (negative margin) + "popular but unprofitable" flag (top-quartile revenue, bottom-quartile margin)
-  - [ ] Product drill-down: per-product trend + cost breakdown
+- [x] **3.1 ToloProfitEngine (pure, table-test-driven)**
+  - [x] Per-line COGS resolution from cost history (order-time effective cost); `cogsMissing` flagging
+  - [x] Order-level: net revenue, shipping cost, fees; day-level ad-spend allocation by revenue share
+  - [x] 100% branch coverage; golden-file tests against seeded dev-store fixtures
+- [x] **3.2 Rollups**
+  - [x] Nightly `ToloDailyProfit` + `ToloProductDailyProfit` rollup job (idempotent, recompute-on-demand when costs backdated)
+  - [x] Recompute queue with per-shop debounce (cost edit → recompute affected range only)
+- [x] **3.3 Dashboard** (`app._index`)
+  - [x] KPI header: net profit, margin %, vs previous period (range picker: today/7d/30d/custom)
+  - [x] Profit waterfall (Polaris Viz): revenue → discounts → refunds → COGS → shipping → fees → ads → profit
+  - [x] Daily profit + margin trend chart
+  - [x] Missing-cost banner linking to COGS editor when completeness < 90% of revenue
+- [x] **3.4 Best / Worst products** (`app.products`)
+  - [x] Sortable table: profit contribution, margin %, units, revenue, returns %
+  - [x] "Losing money" filter (negative margin) + "popular but unprofitable" flag (top-quartile revenue, bottom-quartile margin)
+  - [x] Product drill-down: per-product trend + cost breakdown
 
 ### Phase 4 — Alerts & Reports (Weeks 9–10)
 - [ ] **4.1 Margin alerts** (`app.alerts`)

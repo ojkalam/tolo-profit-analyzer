@@ -11,9 +11,11 @@ import {
   toloAddAdSpend,
   toloDeleteAdSpend,
   toloListAdSpend,
+} from "../services/costs/tolo-adspend.server";
+import {
   TOLO_AD_CHANNELS,
   type ToloAdChannel,
-} from "../services/costs/tolo-adspend.server";
+} from "../services/costs/tolo-adspend-shared";
 import { toloDayKey } from "../services/tolo-dates";
 import { toloDecimalToCents, toloFormatCents } from "../services/profit/tolo-format";
 

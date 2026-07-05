@@ -4,14 +4,10 @@ import {
   toloApportionCents,
 } from "../profit/tolo-money";
 import { toloDaysInMonth, toloEnumerateDays } from "../tolo-dates";
+import { TOLO_AD_CHANNELS, type ToloAdChannel } from "./tolo-adspend-shared";
 
-export type ToloAdChannel = "meta" | "google" | "tiktok" | "other";
-export const TOLO_AD_CHANNELS: ToloAdChannel[] = [
-  "meta",
-  "google",
-  "tiktok",
-  "other",
-];
+export { TOLO_AD_CHANNELS };
+export type { ToloAdChannel };
 
 export interface ToloAdSpendRow {
   id: string;

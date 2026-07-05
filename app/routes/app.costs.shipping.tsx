@@ -10,10 +10,12 @@ import { toloAppContext } from "../services/tolo-app-context.server";
 import {
   toloDeleteShippingRule,
   toloListShippingRules,
-  toloPreviewShipping,
   toloSaveShippingRule,
 } from "../services/costs/tolo-shipping.server";
-import type { ToloShippingRuleKind } from "../services/profit/tolo-profit-engine";
+import {
+  toloResolveShippingCost,
+  type ToloShippingRuleKind,
+} from "../services/profit/tolo-profit-engine";
 import { toloDecimalToCents, toloFormatCents } from "../services/profit/tolo-format";
 import { toloSubmitJson } from "../utils/tolo-submit";
 
@@ -92,11 +94,20 @@ export default function ToloShippingPage() {
   const [items, setItems] = useState("1");
   const [weight, setWeight] = useState("500");
   const [country, setCountry] = useState("US");
-  const preview = toloPreviewShipping(rules, {
-    itemCount: Number(items) || 0,
-    totalWeightGrams: Number(weight) || 0,
-    countryCode: country || null,
-  });
+  const preview = toloResolveShippingCost(
+    rules.map((rule) => ({
+      id: rule.id,
+      kind: rule.kind,
+      config: rule.config,
+      priority: rule.priority,
+      active: rule.active,
+    })),
+    {
+      itemCount: Number(items) || 0,
+      totalWeightGrams: Number(weight) || 0,
+      countryCode: country || null,
+    },
+  );
 
   const saveRule = () => {
     let config: unknown;
