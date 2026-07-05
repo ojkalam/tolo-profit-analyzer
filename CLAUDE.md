@@ -277,16 +277,16 @@ ToloAlert            (id, shopId, productId, date, kind[margin_drop|negative|
   - [x] Product drill-down: per-product trend + cost breakdown
 
 ### Phase 4 — Alerts & Reports (Weeks 9–10)
-- [ ] **4.1 Margin alerts** (`app.alerts`)
-  - [ ] Alert rule settings (margin floor, channels: in-app/email)
-  - [ ] Daily evaluation job after rollup: margin_drop / negative / returns_spike detectors, each with computed *reason* (cost↑, discount↑, returns↑)
-  - [ ] Alert feed UI with seen/resolved lifecycle; dedupe (one alert per product per condition per week)
-- [ ] **4.2 Discount & returns impact views**
-  - [ ] Per-discount-code profit table (profit with vs without the code)
-  - [ ] Returns impact: profit lost per product, return-rate outliers
-- [ ] **4.3 Weekly profit email**
-  - [ ] Postmark template: profit, winners, losers, one action; Monday 08:00 shop-local; unsubscribe honored
-- [ ] **4.4 CSV export** — dashboard-range export of order-level and product-level profit (Pro)
+- [x] **4.1 Margin alerts** (`app.alerts`)
+  - [x] Alert rule settings (margin floor, channels: in-app/email)
+  - [x] Daily evaluation job after rollup: margin_drop / negative / returns_spike detectors, each with computed *reason* (cost↑, discount↑, returns↑)
+  - [x] Alert feed UI with seen/resolved lifecycle; dedupe (one alert per product per condition per week)
+- [x] **4.2 Discount & returns impact views**
+  - [x] Per-discount-code profit table (profit with vs without the code)
+  - [x] Returns impact: profit lost per product, return-rate outliers
+- [x] **4.3 Weekly profit email**
+  - [x] Postmark template: profit, winners, losers, one action; Monday 08:00 shop-local; unsubscribe honored
+- [x] **4.4 CSV export** — dashboard-range export of order-level and product-level profit (Pro)
 
 ### Phase 5 — Billing & Launch (Weeks 11–12)
 - [ ] **5.1 Billing**
