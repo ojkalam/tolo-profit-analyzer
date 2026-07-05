@@ -206,7 +206,7 @@ export async function toloUpsertNormalizedOrder(
   });
 
   await prisma.toloOrderLine.deleteMany({
-    where: { orderRecordId: record.id },
+    where: { shopId: shop.id, orderRecordId: record.id },
   });
   if (normalized.lines.length > 0) {
     await prisma.toloOrderLine.createMany({

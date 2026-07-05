@@ -7,10 +7,10 @@ generator client {
   provider = "prisma-client-js"
 }
 
-// SQLite in development. Staging/production run PostgreSQL: switch provider to
-// "postgresql" and point DATABASE_URL at the managed instance (see .env.example).
+// PostgreSQL everywhere — local dev and production (managed: Neon/Supabase/
+// Cloud SQL). DATABASE_URL points at the instance; production uses sslmode=require.
 datasource db {
-  provider = "sqlite"
+  provider = "postgresql"
   url      = env("DATABASE_URL")
 }
 

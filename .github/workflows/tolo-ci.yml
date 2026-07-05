@@ -8,8 +8,22 @@ on:
 jobs:
   check:
     runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: postgres:16
+        env:
+          POSTGRES_USER: tolo
+          POSTGRES_PASSWORD: tolo
+          POSTGRES_DB: tolo_ci
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
     env:
-      DATABASE_URL: file:ci.sqlite
+      DATABASE_URL: postgresql://tolo:tolo@localhost:5432/tolo_ci
     steps:
       - uses: actions/checkout@v4
       - uses: pnpm/action-setup@v4
@@ -18,7 +32,7 @@ jobs:
           node-version: 22
           cache: pnpm
       - run: pnpm install --frozen-lockfile
-      - run: pnpm prisma generate
+      - run: pnpm prisma migrate deploy
       - run: pnpm lint
       - run: pnpm typecheck
       - run: pnpm test

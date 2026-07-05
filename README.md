@@ -78,12 +78,12 @@ For more information on the Shopify Dev MCP please read [the documentation](http
 
 ### Application Storage
 
-This template uses [Prisma](https://www.prisma.io/) to store session data, by default using an [SQLite](https://www.sqlite.org/index.html) database.
-The database is defined as a Prisma schema in `prisma/schema.prisma`.
+Tolo uses [Prisma](https://www.prisma.io/) with **PostgreSQL** for both session
+storage and all app data. The schema is in `prisma/schema.prisma`.
 
-This use of SQLite works in production if your app runs as a single instance.
-The database that works best for you depends on the data your app needs and how it is queried.
-Here’s a short list of databases providers that provide a free tier to get started:
+Local dev connects to a local Postgres instance (see `.env.example` for the
+`DATABASE_URL` format); staging/production use a managed Postgres with
+`sslmode=require`. A short list of providers with a free tier to get started:
 
 | Database   | Type             | Hosters                                                                                                                                                                                                                                    |
 | ---------- | ---------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |

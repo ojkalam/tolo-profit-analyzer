@@ -90,7 +90,7 @@ This project uses Shopify's **official app template and first-party tooling** �
 
 ### 4.3 Data Layer
 - **Prisma ORM** (ships with the template) — schema in `prisma/schema.prisma`.
-- **SQLite in development** (template default) → **PostgreSQL in production** (managed: Neon/Supabase/Cloud SQL). The template's SQLite is single-instance only; Postgres from day one of staging.
+- **PostgreSQL everywhere** — local dev and production (managed: Neon/Supabase/Cloud SQL). No SQLite: the app relies on Postgres-native `jsonb` config columns and single-store-of-truth semantics, so dev matches prod. Production uses `sslmode=require`.
 - **Session storage:** `@shopify/shopify-app-session-storage-prisma` (template default).
 
 ### 4.4 Background Work
@@ -223,7 +223,7 @@ ToloAlert            (id, shopId, productId, date, kind[margin_drop|negative|
   - [x] Declare all webhooks (incl. GDPR trio) in `shopify.app.toml`
   - [x] Dev store seeded with products (with and without `unitCost`), orders, discounts, and refunds — the test fixtures ARE the product here
 - [x] **0.3 Infrastructure**
-  - [x] Prisma → Postgres for staging/prod; SQLite locally
+  - [x] Prisma → PostgreSQL everywhere (local + staging/prod); no SQLite
   - [x] Redis + BullMQ wiring; `worker` process entrypoint; Fly.io (web + worker) deploy pipeline
   - [x] Sentry on server + client
 
@@ -311,12 +311,12 @@ ToloAlert            (id, shopId, productId, date, kind[margin_drop|negative|
 ---
 
 ## 9. Security & Compliance Checklist
-- [ ] Webhook HMAC verification (handled by `authenticate.webhook` — never bypass)
-- [ ] Session-token auth on every admin route (`authenticate.admin` in every loader/action)
-- [ ] Shop-scoped Prisma extension prevents cross-tenant queries
-- [ ] No customer PII stored (orders stripped to financial fields; no names/emails/addresses)
-- [ ] GDPR webhooks implemented + tested before submission
-- [ ] Secrets only via env; Redis + Postgres over TLS in production
+- [x] Webhook HMAC verification (handled by `authenticate.webhook` — never bypass). All 7 webhook routes call `authenticate.webhook`; none parse the body first.
+- [x] Session-token auth on every admin route (`authenticate.admin` in every loader/action). All 12 `app.*` routes go through `toloAppContext`/`authenticate.admin`, including the `export.csv` resource route.
+- [x] Cross-tenant queries prevented — every shop-scoped query filters by `shopId` (audited across all 73 query sites; the one delete scoped by owning `orderRecordId` also carries `shopId`). `toloShopDb` client extension is available to inject `shopId` as defense-in-depth.
+- [x] No customer PII stored (orders stripped to financial fields at ingest; no names, emails, addresses, or phone — only destination `countryCode` for shipping-zone rules). The only email fields are the merchant's own (`Session`, `ToloShop.notificationEmail`).
+- [x] GDPR webhooks implemented + tested — `customers/data_request`, `customers/redact`, `shop/redact` handled in `webhooks.compliance`; enqueue/audit paths covered by webhook tests; `shop/redact` hard-deletes all shop rows within 30 days with an audit log.
+- [x] Secrets only via env (`.env` git-ignored; no secrets in tracked source — all via `process.env`); PostgreSQL over TLS (`sslmode=require`) and Redis over TLS (`rediss://`) in production.
 
 ## 10. Success Metrics
 - **Activation:** % of installs reaching ≥80% revenue-weighted cost completeness in 7 days (target > 60%)
