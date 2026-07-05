@@ -1,0 +1,30 @@
+# Fly.io config — two processes off one image: web (React Router server) and
+# worker (BullMQ). Set secrets with `fly secrets set`:
+#   SHOPIFY_API_KEY, SHOPIFY_API_SECRET, SHOPIFY_APP_URL, SCOPES,
+#   DATABASE_URL (managed Postgres, sslmode=require),
+#   REDIS_URL (rediss://... — Upstash/Fly Redis),
+#   POSTMARK_SERVER_TOKEN, SENTRY_DSN
+app = "tolo-profit-analyzer"
+primary_region = "iad"
+
+[build]
+
+[env]
+  PORT = "3000"
+  NODE_ENV = "production"
+
+[processes]
+  web = "pnpm run docker-start"
+  worker = "pnpm run worker"
+
+[http_service]
+  processes = ["web"]
+  internal_port = 3000
+  force_https = true
+  auto_stop_machines = false
+  auto_start_machines = true
+  min_machines_running = 1
+
+[[vm]]
+  size = "shared-cpu-1x"
+  memory = "512mb"

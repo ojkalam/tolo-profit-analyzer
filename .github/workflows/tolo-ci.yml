@@ -1,0 +1,51 @@
+name: tolo-ci
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    env:
+      DATABASE_URL: file:ci.sqlite
+    steps:
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: pnpm
+      - run: pnpm install --frozen-lockfile
+      - run: pnpm prisma generate
+      - run: pnpm lint
+      - run: pnpm typecheck
+      - run: pnpm test
+
+  # Deploy: syncs shopify.app.toml (webhooks, scopes) then ships containers.
+  # Requires SHOPIFY_CLI_PARTNERS_TOKEN and FLY_API_TOKEN repo secrets.
+  deploy:
+    if: github.ref == 'refs/heads/main'
+    needs: check
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: pnpm
+      - run: pnpm install --frozen-lockfile
+      - name: Sync app config to Shopify
+        if: ${{ vars.TOLO_DEPLOY_ENABLED == 'true' }}
+        run: pnpm shopify app deploy --force
+        env:
+          SHOPIFY_CLI_PARTNERS_TOKEN: ${{ secrets.SHOPIFY_CLI_PARTNERS_TOKEN }}
+      - name: Deploy to Fly.io
+        if: ${{ vars.TOLO_DEPLOY_ENABLED == 'true' }}
+        uses: superfly/flyctl-actions/setup-flyctl@master
+      - if: ${{ vars.TOLO_DEPLOY_ENABLED == 'true' }}
+        run: flyctl deploy --remote-only
+        env:
+          FLY_API_TOKEN: ${{ secrets.FLY_API_TOKEN }}

@@ -1,0 +1,256 @@
+// Tolo Profit Analyzer — data model.
+// Money is integer cents everywhere (see CLAUDE.md §5). Percentages are basis
+// points (Int). Day keys are shop-local "YYYY-MM-DD" strings so rollups never
+// shift across timezones.
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+// SQLite in development. Staging/production run PostgreSQL: switch provider to
+// "postgresql" and point DATABASE_URL at the managed instance (see .env.example).
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+model Session {
+  id            String    @id
+  shop          String
+  state         String
+  isOnline      Boolean   @default(false)
+  scope         String?
+  expires       DateTime?
+  accessToken   String
+  userId        BigInt?
+  firstName     String?
+  lastName      String?
+  email         String?
+  accountOwner  Boolean   @default(false)
+  locale        String?
+  collaborator  Boolean?  @default(false)
+  emailVerified Boolean?  @default(false)
+  refreshToken        String?
+  refreshTokenExpires DateTime?
+}
+
+model ToloShop {
+  id                String    @id @default(cuid())
+  shopDomain        String    @unique
+  currency          String    @default("USD")
+  ianaTimezone      String    @default("UTC")
+  plan              String    @default("trial") // trial | basic | growth | pro
+  trialEndsAt       DateTime?
+  // Transaction fee estimate: basis points + fixed cents (defaults: Shopify
+  // Payments standard US rate 2.9% + 30¢).
+  feeRateBps        Int       @default(290)
+  feeFixedCents     Int       @default(30)
+  installedAt       DateTime  @default(now())
+  uninstalledAt     DateTime?
+  purgeAfter        DateTime?
+  // Historical import lifecycle (Bulk Operations)
+  importStatus      String    @default("pending") // pending | running | complete | failed
+  importProgress    Int       @default(0)
+  bulkOperationId   String?
+  catalogSyncedAt   DateTime?
+  // Reporting preferences
+  weeklyEmail       Boolean   @default(true)
+  notificationEmail String?
+
+  @@map("tolo_shops")
+}
+
+// Product/variant catalog cache — powers the COGS editor, shipping weight
+// bands, and product names on reports. Refreshed by products/update webhook.
+model ToloVariant {
+  id              String   @id @default(cuid())
+  shopId          String
+  variantId       String // gid://shopify/ProductVariant/...
+  productId       String // gid://shopify/Product/...
+  productTitle    String
+  variantTitle    String?
+  sku             String?
+  priceCents      Int      @default(0)
+  weightGrams     Int      @default(0)
+  inventoryItemId String?
+  productStatus   String   @default("ACTIVE")
+  updatedAt       DateTime @updatedAt
+
+  @@unique([shopId, variantId])
+  @@index([shopId, productId])
+  @@map("tolo_variants")
+}
+
+// COGS history: one row per (variant, effectiveFrom). The cost effective at
+// order time is the newest row with effectiveFrom <= processedAt.
+model ToloProductCost {
+  id            String   @id @default(cuid())
+  shopId        String
+  variantId     String
+  productId     String
+  costCents     Int
+  effectiveFrom DateTime
+  source        String // shopify_import | manual | csv
+  createdAt     DateTime @default(now())
+
+  @@index([shopId, variantId, effectiveFrom])
+  @@map("tolo_product_costs")
+}
+
+model ToloShippingRule {
+  id        String   @id @default(cuid())
+  shopId    String
+  kind      String // flat_order | per_item | weight_band | zone
+  config    Json // kind-specific config, validated in ToloShippingCostResolver
+  priority  Int      @default(0)
+  active    Boolean  @default(true)
+  createdAt DateTime @default(now())
+
+  @@index([shopId, priority])
+  @@map("tolo_shipping_rules")
+}
+
+model ToloAdSpendEntry {
+  id          String   @id @default(cuid())
+  shopId      String
+  channel     String // meta | google | tiktok | other
+  date        String // YYYY-MM-DD shop-local
+  amountCents Int
+  note        String?
+  createdAt   DateTime @default(now())
+
+  @@index([shopId, date])
+  @@map("tolo_ad_spend_entries")
+}
+
+model ToloOrderRecord {
+  id                   String          @id @default(cuid())
+  shopId               String
+  shopifyOrderId       String // gid://shopify/Order/...
+  orderNumber          String?
+  processedAt          DateTime
+  day                  String // YYYY-MM-DD in the shop's timezone
+  grossCents           Int             @default(0) // line revenue before discounts, excl. shipping charged
+  discountCents        Int             @default(0)
+  refundCents          Int             @default(0)
+  shippingChargedCents Int             @default(0)
+  feeCents             Int             @default(0) // estimated gateway fee
+  shippingCostCents    Int             @default(0) // resolved from ToloShippingRule
+  currency             String          @default("USD")
+  countryCode          String? // shipping destination, for zone rules
+  totalWeightGrams     Int             @default(0)
+  discountCodes        Json? // ["SUMMER20", ...]
+  test                 Boolean         @default(false)
+  syncedAt             DateTime        @updatedAt
+  lines                ToloOrderLine[]
+
+  @@unique([shopId, shopifyOrderId])
+  @@index([shopId, day])
+  @@index([shopId, processedAt])
+  @@map("tolo_order_records")
+}
+
+model ToloOrderLine {
+  id               String          @id @default(cuid())
+  orderRecordId    String
+  shopId           String
+  variantId        String?
+  productId        String?
+  title            String?
+  quantity         Int
+  revenueCents     Int             @default(0) // after line-level discounts
+  discountCents    Int             @default(0) // line share of order discounts
+  cogsCents        Int?
+  cogsMissing      Boolean         @default(true)
+  refundedQuantity Int             @default(0)
+  refundedCents    Int             @default(0)
+  orderRecord      ToloOrderRecord @relation(fields: [orderRecordId], references: [id], onDelete: Cascade)
+
+  @@index([shopId, productId])
+  @@index([orderRecordId])
+  @@map("tolo_order_lines")
+}
+
+// Rollup caches — always recomputable from tolo_order_lines + cost tables.
+model ToloDailyProfit {
+  shopId            String
+  date              String // YYYY-MM-DD shop-local
+  grossCents        Int    @default(0)
+  discountCents     Int    @default(0)
+  refundCents       Int    @default(0)
+  cogsCents         Int    @default(0)
+  shippingCostCents Int    @default(0)
+  feeCents          Int    @default(0)
+  adSpendCents      Int    @default(0)
+  netRevenueCents   Int    @default(0)
+  netProfitCents    Int    @default(0)
+  marginBps         Int    @default(0)
+  ordersCount       Int    @default(0)
+  unitsSold         Int    @default(0)
+  cogsMissingCents  Int    @default(0) // revenue with unknown COGS that day
+
+  @@id([shopId, date])
+  @@index([shopId, date])
+  @@map("tolo_daily_profits")
+}
+
+model ToloProductDailyProfit {
+  shopId            String
+  productId         String
+  date              String
+  grossCents        Int     @default(0)
+  discountCents     Int     @default(0)
+  refundCents       Int     @default(0)
+  cogsCents         Int     @default(0)
+  shippingCostCents Int     @default(0)
+  feeCents          Int     @default(0)
+  adSpendCents      Int     @default(0)
+  netRevenueCents   Int     @default(0)
+  netProfitCents    Int     @default(0)
+  marginBps         Int     @default(0)
+  unitsSold         Int     @default(0)
+  refundedUnits     Int     @default(0)
+  cogsMissing       Boolean @default(false)
+
+  @@id([shopId, productId, date])
+  @@index([shopId, date])
+  @@map("tolo_product_daily_profits")
+}
+
+model ToloAlertRule {
+  id             String  @id @default(cuid())
+  shopId         String  @unique
+  marginFloorBps Int     @default(2500)
+  channels       Json // { inApp: true, email: true }
+  active         Boolean @default(true)
+
+  @@map("tolo_alert_rules")
+}
+
+model ToloAlert {
+  id        String   @id @default(cuid())
+  shopId    String
+  productId String?
+  date      String // YYYY-MM-DD the condition was detected for
+  weekKey   String // YYYY-Www — dedupe: one alert per product/kind/week
+  kind      String // margin_drop | negative | returns_spike
+  detail    Json // { marginBps, floorBps, reason, ... }
+  status    String   @default("new") // new | seen | resolved
+  createdAt DateTime @default(now())
+
+  @@unique([shopId, productId, kind, weekKey])
+  @@index([shopId, status])
+  @@map("tolo_alerts")
+}
+
+// GDPR / lifecycle audit trail.
+model ToloAuditLog {
+  id         String   @id @default(cuid())
+  shopDomain String
+  action     String // gdpr_data_request | gdpr_customer_redact | shop_redact_scheduled | shop_purged | ...
+  detail     Json?
+  createdAt  DateTime @default(now())
+
+  @@index([shopDomain])
+  @@map("tolo_audit_logs")
+}
