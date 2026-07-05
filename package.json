@@ -16,6 +16,7 @@
     "test": "vitest run",
     "test:coverage": "vitest run --coverage",
     "worker": "tsx app/jobs/tolo-worker.server.ts",
+    "seed": "tsx prisma/tolo-seed.ts",
     "shopify": "shopify",
     "prisma": "prisma",
     "graphql-codegen": "graphql-codegen",

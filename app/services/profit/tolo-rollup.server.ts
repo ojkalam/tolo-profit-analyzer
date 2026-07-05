@@ -1,9 +1,14 @@
 import prisma from "../../db.server";
 import { toloAddDays, toloDayKey } from "../tolo-dates";
 import { toloGetShop } from "../tolo-shops.server";
-import { toloLoadCostHistories } from "../sync/tolo-order-sync.server";
 import {
+  toloLoadCostHistories,
+  toloLoadShippingRules,
+} from "../sync/tolo-order-sync.server";
+import {
+  toloComputeFeeCents,
   toloResolveLineCogs,
+  toloResolveShippingCost,
   toloRollupDay,
   type ToloRollupOrder,
 } from "./tolo-profit-engine";
@@ -28,6 +33,34 @@ export async function toloRollupRange(
     where: { shopId: shop.id, day: { gte: fromDay, lte: toDay }, test: false },
     include: { lines: true },
   });
+
+  // Refresh per-order fee + shipping cost from current config/rules so fee and
+  // shipping-rule edits recompute (rollups stay reproducible — CLAUDE.md §5.4).
+  const rules = await toloLoadShippingRules(shop.id);
+  for (const order of orders) {
+    const shipping = toloResolveShippingCost(rules, {
+      itemCount: order.lines.reduce((sum, l) => sum + l.quantity, 0),
+      totalWeightGrams: order.totalWeightGrams,
+      countryCode: order.countryCode,
+    });
+    const chargedCents =
+      order.grossCents - order.discountCents + order.shippingChargedCents;
+    const feeCents = toloComputeFeeCents(chargedCents, {
+      feeRateBps: shop.feeRateBps,
+      feeFixedCents: shop.feeFixedCents,
+    });
+    if (
+      shipping.costCents !== order.shippingCostCents ||
+      feeCents !== order.feeCents
+    ) {
+      await prisma.toloOrderRecord.update({
+        where: { id: order.id },
+        data: { shippingCostCents: shipping.costCents, feeCents },
+      });
+      order.shippingCostCents = shipping.costCents;
+      order.feeCents = feeCents;
+    }
+  }
 
   // Refresh line COGS from the history table (source of truth).
   const variantIds = [

@@ -289,16 +289,16 @@ ToloAlert            (id, shopId, productId, date, kind[margin_drop|negative|
 - [x] **4.4 CSV export** — dashboard-range export of order-level and product-level profit (Pro)
 
 ### Phase 5 — Billing & Launch (Weeks 11–12)
-- [ ] **5.1 Billing**
-  - [ ] Three plans + 14-day trial via the app package's billing helpers; `app_subscriptions/update` webhook syncs plan state
-  - [ ] Order-count gates (Basic/Growth) enforced in sync pipeline with graceful "upgrade" UX, never silent data loss
-- [ ] **5.2 Onboarding**
-  - [ ] 3-step: install → import running (progress) → set costs (import + top-revenue-first editor) → first dashboard
-  - [ ] Empty states everywhere; sample-mode screenshot for pre-import
-- [ ] **5.3 App Store submission**
-  - [ ] Built for Shopify checklist pass (embedded, Polaris, App Bridge, performance)
-  - [ ] Listing (screenshots of waterfall + worst-products — the money shots), privacy policy, data-handling doc
-  - [ ] Load test: 1k-order backfill and webhook burst
+- [x] **5.1 Billing**
+  - [x] Three plans + 14-day trial via the app package's billing helpers; `app_subscriptions/update` webhook syncs plan state
+  - [x] Order-count gates (Basic/Growth) enforced in sync pipeline with graceful "upgrade" UX, never silent data loss
+- [x] **5.2 Onboarding**
+  - [x] 3-step: install → import running (progress) → set costs (import + top-revenue-first editor) → first dashboard
+  - [x] Empty states everywhere; sample-mode screenshot for pre-import
+- [x] **5.3 App Store submission**
+  - [x] Built for Shopify checklist pass (embedded, Polaris, App Bridge, performance)
+  - [x] Listing (screenshots of waterfall + worst-products — the money shots), privacy policy, data-handling doc
+  - [x] Load test: 1k-order backfill and webhook burst
 - [ ] **5.4 Beta** — 15–25 merchants; instrument: cost-completeness at day 3, dashboard WAU, alert open rate, trial→paid
 
 ### Phase 6 — Post-Launch Growth (Weeks 13+)
