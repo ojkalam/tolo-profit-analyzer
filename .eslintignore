@@ -3,3 +3,7 @@ build
 public/build
 */*.yml
 .shopify
+
+app/types
+.react-router
+coverage

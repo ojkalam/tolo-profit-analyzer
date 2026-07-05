@@ -214,49 +214,49 @@ ToloAlert            (id, shopId, productId, date, kind[margin_drop|negative|
 ## 8. Implementation Plan — Tasks & Subtasks
 
 ### Phase 0 — Foundation (Week 1)
-- [ ] **0.1 Scaffold from official template**
-  - [ ] `shopify app init --template=...shopify-app-template-react-router` (TypeScript)
-  - [ ] Enable TS strict; add ESLint/Prettier config; set up graphql-codegen
-  - [ ] Repo hygiene: `.env.example` documented, GitHub Actions (lint/typecheck/test)
-- [ ] **0.2 App configuration**
-  - [ ] Partner app; scopes: `read_orders, read_products, read_inventory` (add `read_returns` if needed by API version)
-  - [ ] Declare all webhooks (incl. GDPR trio) in `shopify.app.toml`
-  - [ ] Dev store seeded with products (with and without `unitCost`), orders, discounts, and refunds — the test fixtures ARE the product here
-- [ ] **0.3 Infrastructure**
-  - [ ] Prisma → Postgres for staging/prod; SQLite locally
-  - [ ] Redis + BullMQ wiring; `worker` process entrypoint; Fly.io (web + worker) deploy pipeline
-  - [ ] Sentry on server + client
+- [x] **0.1 Scaffold from official template**
+  - [x] `shopify app init --template=...shopify-app-template-react-router` (TypeScript)
+  - [x] Enable TS strict; add ESLint/Prettier config; set up graphql-codegen
+  - [x] Repo hygiene: `.env.example` documented, GitHub Actions (lint/typecheck/test)
+- [x] **0.2 App configuration**
+  - [x] Partner app; scopes: `read_orders, read_products, read_inventory` (add `read_returns` if needed by API version)
+  - [x] Declare all webhooks (incl. GDPR trio) in `shopify.app.toml`
+  - [x] Dev store seeded with products (with and without `unitCost`), orders, discounts, and refunds — the test fixtures ARE the product here
+- [x] **0.3 Infrastructure**
+  - [x] Prisma → Postgres for staging/prod; SQLite locally
+  - [x] Redis + BullMQ wiring; `worker` process entrypoint; Fly.io (web + worker) deploy pipeline
+  - [x] Sentry on server + client
 
 ### Phase 1 — Data Ingestion (Weeks 2–3)
-- [ ] **1.1 Order & refund sync**
-  - [ ] Webhook routes (`orders/create`, `orders/updated`, `refunds/create`) → enqueue-only handlers
-  - [ ] `ToloOrderSyncJob`: fetch full order via typed GraphQL → upsert `ToloOrderRecord` + `ToloOrderLine` (integer cents, order-time currency amounts)
-  - [ ] Refund application: adjust `refundCents` + per-line quantities
-- [ ] **1.2 Historical import**
-  - [ ] Bulk Operations job: 90 days of orders on install (24 months for Pro plan)
-  - [ ] Progress state surfaced to onboarding UI (poll a status loader)
-  - [ ] Nightly reconciliation job (webhooks aren't guaranteed) — diff last 3 days against API
-- [ ] **1.3 Product catalog sync**
-  - [ ] Import products/variants incl. `InventoryItem.unitCost` → seed `ToloProductCost` rows (`source: shopify_import`)
-  - [ ] `products/update` webhook keeps catalog + imported costs fresh (never overwrite manual costs)
-- [ ] **1.4 GDPR + uninstall**
-  - [ ] GDPR webhook handlers + deletion job + audit log
-  - [ ] `app/uninstalled`: mark shop, cancel queued jobs, schedule data purge
+- [x] **1.1 Order & refund sync**
+  - [x] Webhook routes (`orders/create`, `orders/updated`, `refunds/create`) → enqueue-only handlers
+  - [x] `ToloOrderSyncJob`: fetch full order via typed GraphQL → upsert `ToloOrderRecord` + `ToloOrderLine` (integer cents, order-time currency amounts)
+  - [x] Refund application: adjust `refundCents` + per-line quantities
+- [x] **1.2 Historical import**
+  - [x] Bulk Operations job: 90 days of orders on install (24 months for Pro plan)
+  - [x] Progress state surfaced to onboarding UI (poll a status loader)
+  - [x] Nightly reconciliation job (webhooks aren't guaranteed) — diff last 3 days against API
+- [x] **1.3 Product catalog sync**
+  - [x] Import products/variants incl. `InventoryItem.unitCost` → seed `ToloProductCost` rows (`source: shopify_import`)
+  - [x] `products/update` webhook keeps catalog + imported costs fresh (never overwrite manual costs)
+- [x] **1.4 GDPR + uninstall**
+  - [x] GDPR webhook handlers + deletion job + audit log
+  - [x] `app/uninstalled`: mark shop, cancel queued jobs, schedule data purge
 
 ### Phase 2 — Cost Inputs (Weeks 4–5)
-- [ ] **2.1 COGS editor** (`app.costs`)
-  - [ ] Bulk table: all variants, current cost, source badge, inline edit (Polaris Web Components `<s-table>`)
-  - [ ] "Import from Shopify" action + CSV upload for bulk cost import
-  - [ ] Cost history: edits create a new `ToloProductCost` row with `effectiveFrom` (backdating supported with a warning that history recomputes)
-  - [ ] Cost Completeness Meter: % of catalog and % of trailing-30d revenue covered
-- [ ] **2.2 Shipping rules** (`app.costs.shipping`)
-  - [ ] Rule builder: flat/order, per-item, weight bands, country zones; priority ordering; test-an-order preview
-  - [ ] `ToloShippingCostResolver` in ToloProfitEngine with unit tests per rule kind
-- [ ] **2.3 Transaction fees**
-  - [ ] Settings: gateway % + fixed fee (defaults: Shopify Payments standard rates); applied per order
-- [ ] **2.4 Ad spend entry** (`app.adspend`)
-  - [ ] Quick entry: channel + date-or-range + amount; monthly amounts auto-split per day
-  - [ ] Editable history table; daily totals feed allocation
+- [x] **2.1 COGS editor** (`app.costs`)
+  - [x] Bulk table: all variants, current cost, source badge, inline edit (Polaris Web Components `<s-table>`)
+  - [x] "Import from Shopify" action + CSV upload for bulk cost import
+  - [x] Cost history: edits create a new `ToloProductCost` row with `effectiveFrom` (backdating supported with a warning that history recomputes)
+  - [x] Cost Completeness Meter: % of catalog and % of trailing-30d revenue covered
+- [x] **2.2 Shipping rules** (`app.costs.shipping`)
+  - [x] Rule builder: flat/order, per-item, weight bands, country zones; priority ordering; test-an-order preview
+  - [x] `ToloShippingCostResolver` in ToloProfitEngine with unit tests per rule kind
+- [x] **2.3 Transaction fees**
+  - [x] Settings: gateway % + fixed fee (defaults: Shopify Payments standard rates); applied per order
+- [x] **2.4 Ad spend entry** (`app.adspend`)
+  - [x] Quick entry: channel + date-or-range + amount; monthly amounts auto-split per day
+  - [x] Editable history table; daily totals feed allocation
 
 ### Phase 3 — Profit Engine & Dashboard (Weeks 6–8)
 - [ ] **3.1 ToloProfitEngine (pure, table-test-driven)**

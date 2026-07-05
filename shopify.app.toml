@@ -17,7 +17,7 @@ scopes = "read_orders,read_products,read_inventory"
 redirect_urls = [ "https://example.com/api/auth" ]
 
 [webhooks]
-api_version = "2026-10"
+api_version = "2026-07"
 
   [[webhooks.subscriptions]]
   topics = [ "orders/create", "orders/updated" ]

@@ -5,3 +5,7 @@ node_modules
 prisma
 public
 .shopify
+
+app/types
+.react-router
+coverage
